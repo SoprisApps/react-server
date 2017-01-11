@@ -33,7 +33,7 @@ const serverToStopPromise = (httpServer, webpackDevMiddlewareInstance) => {
 	// server, and we don't need to be polite to it when we're tearing down.
 	// The Client-side HMR is also a ServerSentEvent with a long-running socket connection
 	if (process.env.NODE_ENV !== "production") { // eslint-disable-line no-process-env
-		server.on('connection', socket => sockets.push(socket));
+		httpServer.on('connection', socket => sockets.push(socket));
 	}
 
 	return () => {
@@ -86,16 +86,16 @@ const startHtmlServer = (options, webpackInfo) => {
 
 	if (hot) {
 		logger.notice("Enabling hot module reload with webpack-dev-middleware");
-		webpackDevMiddlewareInstance = WebpackDevMiddleware(compiler, {
+		webpackDevMiddlewareInstance = WebpackDevMiddleware(webpackInfo.client.compiler, {
 			noInfo: true,
 			lazy: false,
-			publicPath: config.output.publicPath,
+			publicPath: webpackInfo.client.config.output.publicPath,
 			log: logger.debug,
 			warn: logger.warn,
 			error: logger.error,
 		});
 		server.use(webpackDevMiddlewareInstance);
-		server.use(WebpackHotMiddleware(webpackInfo.client.compile, {
+		server.use(WebpackHotMiddleware(webpackInfo.client.compiler, {
 			log: logger.debug,
 			overlay: false,
 			path: '/__react_server_hmr__',
@@ -104,7 +104,7 @@ const startHtmlServer = (options, webpackInfo) => {
 		if (compileOnStartup) {
 			// Only compile the webpack configs manually if we're not in hot mode
 			logger.notice("Compiling Webpack bundle prior to starting server");
-			compiler.run((err, stats) => {
+			webpackInfo.client.compiler.run((err, stats) => {
 				handleCompilationErrors(err, stats);
 			});
 		}

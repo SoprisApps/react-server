@@ -10,11 +10,11 @@ export default class IsomorphicWebpack extends React.Component {
 	}
 
 	render() {
-		const env = process.env.NODE_ENV;
-		const message = REACT_SERVER_CLIENT_SIDE;
+		const env = process.env.NODE_ENV; // eslint-disable-line no-process-env
+		const message = REACT_SERVER_CLIENT_SIDE; // eslint-disable-line no-undef
 		console.log("REACT_SERVER_CLIENT_SIDE: ", message);
-		if (MY_CUSTOM_CLIENT_VARIABLE !== undefined) {
-			console.log("MY_CUSTOM_CLIENT_VARIABLE: ", MY_CUSTOM_CLIENT_VARIABLE || null);
+		if (MY_CUSTOM_CLIENT_VARIABLE !== undefined) { // eslint-disable-line no-undef
+			console.log("MY_CUSTOM_CLIENT_VARIABLE: ", MY_CUSTOM_CLIENT_VARIABLE || null); // eslint-disable-line no-undef
 		}
 
 		const smileyFace = require("./smileyface.jpg");
