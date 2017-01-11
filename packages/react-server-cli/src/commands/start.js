@@ -143,13 +143,23 @@ const startHtmlServer = (options, webpackInfo) => {
 				const serverEntryPoint = path.join(webpackInfo.paths.serverOutputDirAbsolute,
 					Object.keys(webpackInfo.paths.serverEntryPoints)[0] + ".bundle.js");
 
-				let rsMiddlewareCalled = false;
-				const rsMiddleware = () => {
-					rsMiddlewareCalled = true;
-					server.use((req, res, next) => {
-						reactServer.middleware(req, res, next, require(serverEntryPoint));
-					});
-				};
+			let rsMiddlewareCalled = false;
+			const rsMiddleware = () => {
+				rsMiddlewareCalled = true;
+
+				expressState.extend(server);
+
+				// parse cookies into req.cookies property
+				server.use(cookieParser());
+
+				// sets the namespace that data will be exposed into client-side
+				// TODO: express-state doesn't do much for us until we're using a templating library
+				server.set('state namespace', '__reactServerState');
+
+				server.use((req, res, next) => {
+					reactServer.middleware(req, res, next, require(serverEntryPoint));
+				});
+			};
 
 				if (customMiddlewarePath) {
 					const customMiddlewareDirAb = path.resolve(process.cwd(), customMiddlewarePath);

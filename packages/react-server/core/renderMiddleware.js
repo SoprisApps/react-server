@@ -146,7 +146,7 @@ module.exports = function(req, res, next, routes) {
 		context.navigate(new ExpressServerRequest(req));
 
 	});
-}
+};
 
 module.exports.getActiveRequests = () => ACTIVE_REQUESTS;
 
