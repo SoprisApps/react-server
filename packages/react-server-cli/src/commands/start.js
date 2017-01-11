@@ -4,6 +4,7 @@ import path from "path"
 import express from "express"
 import compression from "compression"
 import bodyParser from "body-parser"
+import helmet from "helmet"
 import WebpackDevMiddleware from "webpack-dev-middleware"
 import WebpackHotMiddleware from "webpack-hot-middleware"
 import handleCompilationErrors from "../handleCompilationErrors";
@@ -115,16 +116,7 @@ const startHtmlServer = (options, webpackInfo) => {
 		server.use(compression());
 		server.use(bodyParser.urlencoded({ extended: false }));
 		server.use(bodyParser.json());
-
-		expressState.extend(server);
-
-		// parse cookies into req.cookies property
-		server.use(cookieParser());
-
-		// sets the namespace that data will be exposed into client-side
-		// TODO: express-state doesn't do much for us until we're using a templating library
-		server.set('state namespace', '__reactServerState');
-
+		server.use(helmet());
 		rsMiddleware();
 	};
 
