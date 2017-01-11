@@ -4,6 +4,7 @@ import path from "path"
 import express from "express"
 import compression from "compression"
 import bodyParser from "body-parser"
+import helmet from "helmet"
 import WebpackDevMiddleware from "webpack-dev-middleware"
 import WebpackHotMiddleware from "webpack-hot-middleware"
 import compileClient from "../compileClient"
@@ -104,6 +105,7 @@ const startServer = (serverRoutes, options, compiler, config) => {
 		server.use(compression());
 		server.use(bodyParser.urlencoded({ extended: false }));
 		server.use(bodyParser.json());
+		server.use(helmet());
 		rsMiddleware();
 	};
 
