@@ -16,181 +16,10 @@ import chokidar from 'chokidar';
 import buildWebpackConfigs from "../buildWebpackConfigs";
 import buildWebpackCompilers from "../buildWebpackCompilers";
 import reactServerCliRun from "../run";
+import serverSideHotModuleReload from "../serverSideHotModuleReload";
 
 
 const logger = reactServer.logging.getLogger(__LOGGER__);
-
-let CHUNK_HASHES = {};
-
-// if used to start a server, returns an object with two properties, started and
-// stop. started is a promise that resolves when all necessary servers have been
-// started. stop is a method to stop all servers. It takes no arguments and
-// returns a promise that resolves when the server has stopped.
-export default function start(options){
-	setupLogging(options);
-	logProductionWarnings(options);
-
-	const {
-		port,
-		bindIp,
-		hot,
-		compileOnStartup,
-	} = options;
-
-	const webpackInfo = buildWebpack(options);
-
-	const allStartingPromises = [];
-
-	if (hot || compileOnStartup) {
-		allStartingPromises.push(webpackInfo.client.compiledPromise);
-		allStartingPromises.push(webpackInfo.server.compiledPromise);
-	}
-
-	logger.notice("Starting server...");
-
-	const htmlServerPromise = startHtmlServer(options, webpackInfo);
-	allStartingPromises.push(htmlServerPromise.started);
-
-	if (hot) {
-		const configWatcher = watchConfigurationFiles(htmlServerPromise, options);
-	}
-
-	return {
-		stop: () => Promise.all([htmlServerPromise.stop()]),
-		started: Promise.all(allStartingPromises)
-			.catch(e => {
-				logger.error(e);
-				throw e
-			})
-			.then(() => logger.notice(`Ready for requests on ${bindIp}:${port}.`)),
-	};
-}
-
-
-// given the server routes file and a port, start a react-server HTML server at
-// http://host:port/. returns an object with two properties, started and stop;
-// see the default function doc for explanation.
-const startHtmlServer = (options, webpackInfo) => {
-	const {
-		port,
-		bindIp,
-		httpsOptions,
-		customMiddlewarePath,
-		hot,
-		longTermCaching,
-		compileOnStartup,
-	} = options;
-
-	let webpackDevMiddlewareInstance;
-	const server = express();
-
-	if (hot) {
-		// We don't need to add the server compiler to anything because the clientCompiler runs the serverCompiler
-		webpackDevMiddlewareInstance = WebpackDevMiddleware(webpackInfo.client.compiler, {
-			//noInfo: (options.logLevel !== "debug"),
-			noInfo: true,
-			lazy: false,
-			publicPath: webpackInfo.client.config.output.publicPath,
-			log: logger.debug,
-			warn: logger.warn,
-			error: logger.error,
-		});
-		server.use(webpackDevMiddlewareInstance);
-		server.use(WebpackHotMiddleware(webpackInfo.client.compiler, {
-			log: logger.info,
-			path: '/__react_server_hmr__',
-		}));
-	} else {
-		if (compileOnStartup) {
-			// Only compile the webpack configs manually if we're not in hot mode and compileOnStartup is true
-			logger.notice("Compiling Webpack bundle prior to starting server...");
-			webpackInfo.client.compiler.run((err, stats) => {
-				const error = handleCompilationErrors(err, stats);
-			});
-		}
-
-		server.use('/', compression(), express.static(`__clientTemp/build`, {
-			maxage: longTermCaching ? '365d' : '0s',
-		}));
-	}
-
-	let middlewareSetup = (server, rsMiddleware) => {
-		server.use(compression());
-		server.use(bodyParser.urlencoded({ extended: false }));
-		server.use(bodyParser.json());
-
-		expressState.extend(server);
-
-		// parse cookies into req.cookies property
-		server.use(cookieParser());
-
-		// sets the namespace that data will be exposed into client-side
-		// TODO: express-state doesn't do much for us until we're using a templating library
-		server.set('state namespace', '__reactServerState');
-
-		rsMiddleware();
-	};
-
-	const webServer = httpsOptions ? https.createServer(httpsOptions, server) : http.createServer(server);
-	return {
-		stop: serverToStopPromise(webServer, webpackDevMiddlewareInstance),
-		started: new Promise((resolve, reject) => {
-			webpackInfo.server.routesFile.then(() => {
-				logger.info("Starting react-server...");
-
-				// Currently this refers to the first route in the webpack server config.  This will need to be changed
-				// when server-side chunking is enabled.
-				const serverEntryPoint = path.join(webpackInfo.paths.serverOutputDirAbsolute,
-					Object.keys(webpackInfo.paths.serverEntryPoints)[0] + ".bundle.js");
-
-			let rsMiddlewareCalled = false;
-			const rsMiddleware = () => {
-				rsMiddlewareCalled = true;
-
-				expressState.extend(server);
-
-				// parse cookies into req.cookies property
-				server.use(cookieParser());
-
-				// sets the namespace that data will be exposed into client-side
-				// TODO: express-state doesn't do much for us until we're using a templating library
-				server.set('state namespace', '__reactServerState');
-
-				server.use((req, res, next) => {
-					reactServer.middleware(req, res, next, require(serverEntryPoint));
-				});
-			};
-
-				if (customMiddlewarePath) {
-					const customMiddlewareDirAb = path.resolve(process.cwd(), customMiddlewarePath);
-					middlewareSetup = require(customMiddlewareDirAb).default;
-				}
-
-				middlewareSetup(server, rsMiddleware);
-
-				if (!rsMiddlewareCalled) {
-					logger.error("Error react-server middleware was never setup in custom middleware function");
-					reject("Custom middleware did not setup react-server middleware");
-					return;
-				}
-
-				webServer.on('error', (e) => {
-					logger.error("Error starting up react-server");
-					logger.error(e);
-					reject(e);
-				});
-				webServer.listen(port, bindIp, (e) => {
-					if (e) {
-						reject(e);
-						return;
-					}
-					logger.info(`Started react-server over ${httpsOptions ? "HTTPS" : "HTTP"} on ${bindIp}:${port}`);
-					resolve();
-				});
-			});
-		}),
-	};
-};
 
 // returns a method that can be used to stop the server. the returned method
 // returns a promise to indicate when the server is actually stopped.
@@ -235,34 +64,142 @@ const serverToStopPromise = (server, webpackDevMiddlewareInstance) => {
 	};
 };
 
+// given the server routes file and a port, start a react-server HTML server at
+// http://host:port/. returns an object with two properties, started and stop;
+// see the default function doc for explanation.
+const startHtmlServer = (options, webpackInfo) => {
+	const {
+		port,
+		bindIp,
+		httpsOptions,
+		customMiddlewarePath,
+		hot,
+		longTermCaching,
+		compileOnStartup,
+	} = options;
+
+	let webpackDevMiddlewareInstance;
+	const server = express();
+
+	if (hot) {
+		// We don't need to add the server compiler to anything because the clientCompiler runs the serverCompiler
+		webpackDevMiddlewareInstance = WebpackDevMiddleware(webpackInfo.client.compiler, {
+			//noInfo: (options.logLevel !== "debug"),
+			noInfo: true,
+			lazy: false,
+			publicPath: webpackInfo.client.config.output.publicPath,
+			log: logger.debug,
+			warn: logger.warn,
+			error: logger.error,
+		});
+		server.use(webpackDevMiddlewareInstance);
+		server.use(WebpackHotMiddleware(webpackInfo.client.compiler, {
+			log: logger.info,
+			path: '/__react_server_hmr__',
+		}));
+	} else {
+		if (compileOnStartup) {
+			// Only compile the webpack configs manually if we're not in hot mode and compileOnStartup is true
+			logger.notice("Compiling Webpack bundle prior to starting server...");
+			webpackInfo.client.compiler.run((err, stats) => {
+				handleCompilationErrors(err, stats);
+			});
+		}
+
+		server.use('/', compression(), express.static(`__clientTemp/build`, {
+			maxage: longTermCaching ? '365d' : '0s',
+		}));
+	}
+
+	let middlewareSetup = (server, rsMiddleware) => {
+		server.use(compression());
+		server.use(bodyParser.urlencoded({ extended: false }));
+		server.use(bodyParser.json());
+
+		expressState.extend(server);
+
+		// parse cookies into req.cookies property
+		server.use(cookieParser());
+
+		// sets the namespace that data will be exposed into client-side
+		// TODO: express-state doesn't do much for us until we're using a templating library
+		server.set('state namespace', '__reactServerState');
+
+		rsMiddleware();
+	};
+
+	const webServer = httpsOptions ? https.createServer(httpsOptions, server) : http.createServer(server);
+	return {
+		stop: serverToStopPromise(webServer, webpackDevMiddlewareInstance),
+		started: new Promise((resolve, reject) => {
+			webpackInfo.server.routesFile.then(() => {
+				logger.info("Starting react-server...");
+
+				// Currently this refers to the first route in the webpack server config.  This will need to be changed
+				// when server-side chunking is enabled.
+				const serverEntryPoint = path.join(webpackInfo.paths.serverOutputDirAbsolute,
+					Object.keys(webpackInfo.paths.serverEntryPoints)[0] + ".bundle.js");
+
+				let rsMiddlewareCalled = false;
+				const rsMiddleware = () => {
+					rsMiddlewareCalled = true;
+
+					expressState.extend(server);
+
+					// parse cookies into req.cookies property
+					server.use(cookieParser());
+
+					// sets the namespace that data will be exposed into client-side
+					// TODO: express-state doesn't do much for us until we're using a templating library
+					server.set('state namespace', '__reactServerState');
+
+					server.use((req, res, next) => {
+						reactServer.middleware(req, res, next, require(serverEntryPoint));
+					});
+				};
+
+				if (customMiddlewarePath) {
+					const customMiddlewareDirAb = path.resolve(process.cwd(), customMiddlewarePath);
+					middlewareSetup = require(customMiddlewareDirAb).default;
+				}
+
+				middlewareSetup(server, rsMiddleware);
+
+				if (!rsMiddlewareCalled) {
+					logger.error("Error react-server middleware was never setup in custom middleware function");
+					reject("Custom middleware did not setup react-server middleware");
+					return;
+				}
+
+				webServer.on('error', (e) => {
+					logger.error("Error starting up react-server");
+					logger.error(e);
+					reject(e);
+				});
+				webServer.listen(port, bindIp, (e) => {
+					if (e) {
+						reject(e);
+						return;
+					}
+					logger.info(`Started react-server over ${httpsOptions ? "HTTPS" : "HTTP"} on ${bindIp}:${port}`);
+					resolve();
+				});
+			});
+		}),
+	};
+};
+
+
+
 function buildWebpack(options) {
 	let webpackInfo = buildWebpackConfigs(options);
 
 	if (options.hot || options.compileOnStartup) {
-		CHUNK_HASHES = {};
-
 		webpackInfo = buildWebpackCompilers(options, webpackInfo);
 		webpackInfo.client.compiledPromise = new Promise((resolve) => webpackInfo.client.compiler.plugin("done", () => resolve()));
 		webpackInfo.server.compiledPromise = new Promise((resolve) => webpackInfo.server.compiler.plugin("done", (stats) => {
-			if (options.hot && stats.compilation.errors.length === 0) {
-				// This is the meat of the server side "hot reloading" code.  Essentially, we look iterate over the named
-				// chunks and, if their hashes are different from what we last saw, we delete the "require.cache" entry.
-				// The next time that file is "require()'d", NodeJS will read it from disk.
-				let chunk,
-					absoluteFilename;
-				for (let chunkName in stats.compilation.namedChunks) {
-					if (stats.compilation.namedChunks.hasOwnProperty(chunkName)) {
-						chunk = stats.compilation.namedChunks[chunkName];
-						if (typeof CHUNK_HASHES[chunkName] !== "undefined" && CHUNK_HASHES[chunkName] !== chunk.hash) {
-							for (let i in chunk.files) {
-								absoluteFilename = path.join(webpackInfo.paths.serverOutputDirAbsolute, chunk.files[i]);
-								logger.notice(`chunk ${chunkName} changed, hot reloading: ${absoluteFilename}`);
-								delete require.cache[absoluteFilename];
-							}
-						}
-						CHUNK_HASHES[chunkName] = chunk.hash;
-					}
-				}
+			if (options.hot) {
+				serverSideHotModuleReload(stats, webpackInfo);
 			}
 			resolve();
 		}));
@@ -302,4 +239,49 @@ function watchConfigurationFiles(serverObj, options) {
 	});
 
 	return watcher;
+}
+
+
+// if used to start a server, returns an object with two properties, started and
+// stop. started is a promise that resolves when all necessary servers have been
+// started. stop is a method to stop all servers. It takes no arguments and
+// returns a promise that resolves when the server has stopped.
+export default function start(options){
+	setupLogging(options);
+	logProductionWarnings(options);
+
+	const {
+		port,
+		bindIp,
+		hot,
+		compileOnStartup,
+	} = options;
+
+	const webpackInfo = buildWebpack(options);
+
+	const allStartingPromises = [];
+
+	if (hot || compileOnStartup) {
+		allStartingPromises.push(webpackInfo.client.compiledPromise);
+		allStartingPromises.push(webpackInfo.server.compiledPromise);
+	}
+
+	logger.notice("Starting server...");
+
+	const htmlServerPromise = startHtmlServer(options, webpackInfo);
+	allStartingPromises.push(htmlServerPromise.started);
+
+	if (hot) {
+		watchConfigurationFiles(htmlServerPromise, options);
+	}
+
+	return {
+		stop: () => Promise.all([htmlServerPromise.stop()]),
+		started: Promise.all(allStartingPromises)
+			.catch(e => {
+				logger.error(e);
+				throw e
+			})
+			.then(() => logger.notice(`Ready for requests on ${bindIp}:${port}.`)),
+	};
 }
