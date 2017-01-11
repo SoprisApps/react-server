@@ -24,7 +24,7 @@ const logger = reactServer.logging.getLogger(__LOGGER__);
 
 // returns a method that can be used to stop the server. the returned method
 // returns a promise to indicate when the server is actually stopped.
-const serverToStopPromise = (server, webpackDevMiddlewareInstance) => {
+const serverToStopPromise = (httpServer, webpackDevMiddlewareInstance) => {
 
 	const sockets = [];
 
@@ -46,12 +46,12 @@ const serverToStopPromise = (server, webpackDevMiddlewareInstance) => {
 				webpackDevMiddlewareInstance.close();
 			}
 
-			server.on('error', (e) => {
+			httpServer.on('error', (e) => {
 				logger.error('An error was emitted while shutting down the server');
 				logger.error(e);
 				reject(e);
 			});
-			server.close((e) => {
+			httpServer.close((e) => {
 				if (e) {
 					logger.error('The server was not started, so it cannot be stopped.');
 					logger.error(e);
@@ -65,7 +65,9 @@ const serverToStopPromise = (server, webpackDevMiddlewareInstance) => {
 	};
 };
 
-// given the server routes file and a port, start a react-server HTML server at
+
+
+// given the server routes file and a port, start a react-server  server at
 // http://host:port/. returns an object with two properties, started and stop;
 // see the default function doc for explanation.
 const startHtmlServer = (options, webpackInfo) => {
@@ -83,31 +85,31 @@ const startHtmlServer = (options, webpackInfo) => {
 	const server = express();
 
 	if (hot) {
-		// We don't need to add the server compiler to anything because the clientCompiler runs the serverCompiler
-		webpackDevMiddlewareInstance = WebpackDevMiddleware(webpackInfo.client.compiler, {
-			//noInfo: (options.logLevel !== "debug"),
+		logger.notice("Enabling hot module reload with webpack-dev-middleware");
+		webpackDevMiddlewareInstance = WebpackDevMiddleware(compiler, {
 			noInfo: true,
 			lazy: false,
-			publicPath: webpackInfo.client.config.output.publicPath,
+			publicPath: config.output.publicPath,
 			log: logger.debug,
 			warn: logger.warn,
 			error: logger.error,
 		});
 		server.use(webpackDevMiddlewareInstance);
-		server.use(WebpackHotMiddleware(webpackInfo.client.compiler, {
-			log: logger.info,
+		server.use(WebpackHotMiddleware(webpackInfo.client.compile, {
+			log: logger.debug,
+			overlay: false,
 			path: '/__react_server_hmr__',
 		}));
 	} else {
 		if (compileOnStartup) {
-			// Only compile the webpack configs manually if we're not in hot mode and compileOnStartup is true
-			logger.notice("Compiling Webpack bundle prior to starting server...");
-			webpackInfo.client.compiler.run((err, stats) => {
+			// Only compile the webpack configs manually if we're not in hot mode
+			logger.notice("Compiling Webpack bundle prior to starting server");
+			compiler.run((err, stats) => {
 				handleCompilationErrors(err, stats);
 			});
 		}
 
-		server.use('/', compression(), express.static(`__clientTemp/build`, {
+		server.use('/', express.static(`__clientTemp/build`, {
 			maxage: longTermCaching ? '365d' : '0s',
 		}));
 	}
@@ -120,9 +122,9 @@ const startHtmlServer = (options, webpackInfo) => {
 		rsMiddleware();
 	};
 
-	const webServer = httpsOptions ? https.createServer(httpsOptions, server) : http.createServer(server);
+	const httpServer = httpsOptions ? https.createServer(httpsOptions, server) : http.createServer(server);
 	return {
-		stop: serverToStopPromise(webServer, webpackDevMiddlewareInstance),
+		stop: serverToStopPromise(httpServer, webpackDevMiddlewareInstance),
 		started: new Promise((resolve, reject) => {
 			webpackInfo.server.routesFile.then(() => {
 				logger.info("Starting react-server...");
@@ -163,12 +165,12 @@ const startHtmlServer = (options, webpackInfo) => {
 					return;
 				}
 
-				webServer.on('error', (e) => {
+				httpServer.on('error', (e) => {
 					logger.error("Error starting up react-server");
 					logger.error(e);
 					reject(e);
 				});
-				webServer.listen(port, bindIp, (e) => {
+				httpServer.listen(port, bindIp, (e) => {
 					if (e) {
 						reject(e);
 						return;
@@ -235,10 +237,10 @@ function watchConfigurationFiles(serverObj, options) {
 
 
 // if used to start a server, returns an object with two properties, started and
-// stop. started is a promise that resolves when all necessary servers have been
-// started. stop is a method to stop all servers. It takes no arguments and
+// stop. started is a promise that resolves when the server has been
+// started. stop is a method to stop the server. It takes no arguments and
 // returns a promise that resolves when the server has stopped.
-export default function start(options){
+export default function start(options) {
 	setupLogging(options);
 	logProductionWarnings(options);
 
