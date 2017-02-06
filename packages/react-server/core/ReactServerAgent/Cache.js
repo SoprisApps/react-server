@@ -3,20 +3,8 @@ var logger = require('../logging').getLogger(__LOGGER__)
 ,	Q = require('q')
 ,	merge = require("lodash/merge")
 ,	isEqual = require("lodash/isEqual")
+,	Serializers = require("./Serializers")
 ;
-
-// TODO: we should figure out a way to consolidate this with SuperAgentExtender
-var responseBodyParsers = {
-	'application/json': function (text) {
-		if (text && text.trim) {
-			text = text.trim();
-		}
-		if (/^{}&&/.test(text)) {
-			text = text.substr(4);
-		}
-		return JSON.parse(text);
-	},
-}
 
 /**
  * An entry in the RequestDataCache
@@ -93,7 +81,7 @@ class CacheEntry {
 			return resCopy;
 		}
 
-		var parseable = !!responseBodyParsers[res.type];
+		var parseable = !!Serializers.allSerializers().get(res.type);
 
 		Object.keys(res).forEach( (prop) => {
 			if ("body" === prop && parseable) {
@@ -150,12 +138,12 @@ class CacheEntry {
 			// re-parse the text of the response body serialized by the server.
 			// if the body wasn't in a known format, it will have been included directly
 
-			var parse = responseBodyParsers[res.type];
-			if (!parse) {
+			var serializer = Serializers.allSerializers().get(res.type);
+			if (!serializer) {
 				logger.warning(`Unparseable content type for ${this.url}: ${res.type}, but response._hasBody was true. (This may be a bug in ReactServerAgent)`);
 			}
-			res.body = parse && res.text && res.text.length
-				? parse(res.text)
+			res.body = serializer && res.text && res.text.length
+				? serializer.parse(res.text)
 				: null;
 			delete res._hasBody;
 		}

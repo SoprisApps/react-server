@@ -2,6 +2,7 @@ var RLS = require('./util/RequestLocalStorage').getNamespace()
 ,	Cache = require("./ReactServerAgent/Cache")
 ,	Request = require("./ReactServerAgent/Request")
 ,	Plugins = require("./ReactServerAgent/Plugins")
+,	Serializers = require("./ReactServerAgent/Serializers")
 ;
 
 
@@ -97,6 +98,10 @@ var API = {
 	 */
 	plugResponse (pluginFunc) {
 		Plugins.forResponse().add(pluginFunc);
+	},
+
+	plugSerializer(serializerClass) {
+		Serializers.allSerializers().add(serializerClass);
 	},
 
 	_fetchDataBundle(url) {

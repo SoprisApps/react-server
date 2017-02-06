@@ -2,8 +2,10 @@ var superagent = require('superagent')
 ,	logger = require('../logging').getLogger(__LOGGER__)
 ,	Q = require('q')
 ,	Plugins = require("./Plugins")
+,	Serializers = require("./Serializers")
 ,	merge = require("lodash/merge")
 ;
+
 
 /**
  * Implements a subset of superagent's API. Packages up arguments
@@ -209,6 +211,16 @@ function responsePluginApplyingCallback(cb) {
 // to `this`
 function buildSuperagentRequest() {
 	var req = superagent(this._method, this._buildUrl());
+
+	Serializers.allSerializers().getTypes().forEach((type) => {
+		const serializer = Serializers.allSerializers().get(type);
+		if (serializer && serializer.serialize) {
+			req.serialize[type] = serializer.serialize;
+		}
+		if (serializer && serializer.parse) {
+			req.parse[type] = serializer.parse;
+		}
+	});
 
 	if (this._agent){
 		req.agent(this._agent);
