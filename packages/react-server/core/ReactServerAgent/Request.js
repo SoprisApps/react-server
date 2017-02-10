@@ -212,16 +212,6 @@ function responsePluginApplyingCallback(cb) {
 function buildSuperagentRequest() {
 	var req = superagent(this._method, this._buildUrl());
 
-	Serializers.allSerializers().getTypes().forEach((type) => {
-		const serializer = Serializers.allSerializers().get(type);
-		if (serializer && serializer.serialize) {
-			req.serialize[type] = serializer.serialize;
-		}
-		if (serializer && serializer.parse) {
-			req.parse[type] = serializer.parse;
-		}
-	});
-
 	if (this._agent){
 		req.agent(this._agent);
 	}
@@ -283,6 +273,18 @@ function buildSuperagentRequest() {
 	if (this._timeout) {
 		req.timeout(this._timeout);
 	}
+
+	const mimeType = req.getHeader('Content-Type') || 'application/json';
+	//console.log('req: ', req);
+	const serializer = Serializers.allSerializers().get(mimeType);
+	if (serializer && serializer.serialize) {
+		console.log('setting req.serialize: ', serializer.serialize);
+		req.serialize(serializer.serialize);
+	}
+	if (serializer && serializer.parse) {
+		req.buffer(true).parse(serializer.superagentParse);
+	}
+
 
 	// cache the internal request, so that we can cancel it
 	// if necessary (see: `abort()`)

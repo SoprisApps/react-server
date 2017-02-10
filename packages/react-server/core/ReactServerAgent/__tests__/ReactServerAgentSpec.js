@@ -10,6 +10,8 @@ var {
 	SIMPLE_SUCCESS
 } = require("../../test/util/reactServerAgentSupport");
 
+var JSONSerializer = require("../JSONSerializer");
+
 
 describe("ReactServerAgent", () => {
 
@@ -38,6 +40,8 @@ describe("ReactServerAgent", () => {
 				expect(err).toBeNull();
 				expect(res).not.toBeUndefined();
 
+				console.log('err: ', err);
+				console.log('res: ', res);
 				expect(res.status).toEqual(200);
 				expect(res.text).toEqual(SIMPLE_SUCCESS);
 				done();
@@ -710,6 +714,29 @@ describe("ReactServerAgent", () => {
 
 					done();
 				})
+				.done();
+		}));
+
+		it("SuperAgent parses res.body when content-type is application/json", withRlsContext( (done) => {
+
+			var URL = "/describe";
+
+			spyOn(JSONSerializer, 'parse');
+			// only GET requests are cached at the moment
+			ReactServerAgent.get(URL)
+				.then( (res) => {
+					console.log(res.body);
+					expect(res.body).toBeDefined();
+					expect(JSONSerializer.parse).toHaveBeenCalled();
+
+					done();
+				}).catch( (err) => {
+				console.log(err.stack);
+
+				// this will fail the test
+				expect(err).toBeUndefined();
+				done();
+			})
 				.done();
 		}));
 	});
