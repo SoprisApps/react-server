@@ -1,16 +1,19 @@
-var React = require('react');
-const PropTypes = require('prop-types');
-var Q = require('q');
+import React from 'react';
+import PropTypes from 'prop-types';
+import Q from 'q';
+import lodashAssign from 'lodash/assign';
+import * as logging from '../logging';
 
-const {isTheFold} = require('./TheFold');
+import { isTheFold } from './TheFold';
+
 
 const _ = {
-	assign: require('lodash/assign'),
+	assign: lodashAssign,
 };
 
-var logger = require('../logging').getLogger(__LOGGER__);
+const logger = logging.getLogger(__LOGGER__);
 
-class RootElement extends React.Component {
+export default class RootElement extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -94,8 +97,6 @@ class RootElement extends React.Component {
 	}
 
 }
-
-module.exports = RootElement;
 
 RootElement.propTypes = {
 	listen: PropTypes.func,

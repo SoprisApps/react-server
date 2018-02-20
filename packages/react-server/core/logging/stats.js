@@ -147,8 +147,6 @@ function makeGaugeClassifier(opts) {
 
 }
 
-function getCombinedLogger(getLoggerForConfig, opts) {
+export function getCombinedLogger(getLoggerForConfig, opts) {
 	return loggers[opts.name] || (loggers[opts.name] = wrapLogger(getLoggerForConfig, opts));
 }
-
-module.exports = { getCombinedLogger };

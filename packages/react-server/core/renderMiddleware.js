@@ -1,26 +1,31 @@
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import Q from 'q';
 
-var logger = require('./logging').getLogger(__LOGGER__),
-	React = require('react'),
-	ReactDOMServer = require('react-dom/server'),
-	MobileDetect = require('mobile-detect'),
-	RequestContext = require('./context/RequestContext'),
-	RequestLocalStorage = require('./util/RequestLocalStorage'),
-	DebugUtil = require('./util/DebugUtil'),
-	RLS = RequestLocalStorage.getNamespace(),
-	flab = require('flab'),
-	Q = require('q'),
-	config = require('./config'),
-	ExpressServerRequest = require("./ExpressServerRequest"),
+import * as logging from './logging';
 
-	PageUtil = require('./util/PageUtil'),
-	ReactServerAgent = require('./ReactServerAgent'),
-	StringEscapeUtil = require('./util/StringEscapeUtil'),
-	{getRootElementAttributes} = require('./components/RootElement'),
-	{PAGE_CSS_NODE_ID, PAGE_LINK_NODE_ID, PAGE_CONTENT_NODE_ID, PAGE_CONTAINER_NODE_ID} = require('./constants'),
-	{flushLogsToResponse} = require('./logging/response');
+import RequestContext from './context/RequestContext';
+import RequestLocalStorage from './util/RequestLocalStorage';
+import DebugUtil from './util/DebugUtil';
+import PageUtil from "./util/PageUtil";
+import ReactServerAgent from './ReactServerAgent';
+import {PAGE_CSS_NODE_ID, PAGE_LINK_NODE_ID, PAGE_CONTENT_NODE_ID, PAGE_CONTAINER_NODE_ID} from './constants';
+import RootElement from './components/RootElement';
+import config from "./config";
+import MobileDetect from 'mobile-detect';
+import flab from 'flab';
+import ExpressServerRequest from "./ExpressServerRequest";
+import { escapeForScriptTag } from './util/StringEscapeUtil';
+import { flushLogsToResponse } from './logging/response';
 
-var _ = {
-	map: require('lodash/map'),
+import lodashMap from 'lodash/map';
+
+const RLS = RequestLocalStorage.getNamespace();
+const logger = logging.getLogger(__LOGGER__);
+
+
+const _ = {
+	map: lodashMap,
 };
 
 // TODO FIXME ??
@@ -34,7 +39,7 @@ var FAILSAFE_RENDER_TIMEOUT = 20e3;
 var FAILSAFE_ROUTER_TIMEOUT = 20e3;
 
 // We'll use this for keeping track of request concurrency per worker.
-var ACTIVE_REQUESTS = 0;
+let ACTIVE_REQUESTS = 0;
 
 // Some non-content items that can live in the elements array.
 var ELEMENT_PENDING         = -1;
@@ -43,7 +48,7 @@ var ELEMENT_ALREADY_WRITTEN = -2;
 /**
  * renderMiddleware entrypoint. Called by express for every request.
  */
-module.exports = function(req, res, next, routes) {
+export default function(req, res, next, routes) {
 	RequestLocalStorage.startRequest(() => {
 		ACTIVE_REQUESTS++;
 
@@ -147,12 +152,13 @@ module.exports = function(req, res, next, routes) {
 		context.navigate(new ExpressServerRequest(req));
 
 	});
-};
+}
 
-module.exports.getActiveRequests = () => ACTIVE_REQUESTS;
+const getActiveRequests = () => ACTIVE_REQUESTS;
+export { getActiveRequests };
 
 function initResponseCompletePromise(res){
-	var dfd = Q.defer();
+	const dfd = Q.defer();
 
 	res.on('close',  dfd.resolve);
 	res.on('finish', dfd.resolve);
@@ -826,7 +832,7 @@ function renderElement(res, element, context) {
 			html = ReactDOMServer.renderToString(
 				React.cloneElement(element, { context: context })
 			);
-			attrs = getRootElementAttributes(element);
+			attrs = RootElement.getRootElementAttributes(element);
 		}
 	} catch (err) {
 		// A component failing to render is not fatal.  We've already
@@ -991,7 +997,7 @@ function setupLateArrivals(res) {
 				text: `__reactServerClientController.dataArrival(${
 					JSON.stringify(pendingRequest.url)
 				}, ${
-					StringEscapeUtil.escapeForScriptTag(JSON.stringify(pendingRequest.entry.dehydrate()))
+					escapeForScriptTag(JSON.stringify(pendingRequest.entry.dehydrate()))
 				});`,
 			}], res);
 
@@ -1090,8 +1096,9 @@ function getDeviceType(req) {
 	return "desktop";
 }
 
-module.exports._testFunctions = {
+const _testFunctions = {
 	renderMetaTags,
 	renderLinkTags,
 	renderBaseTag,
 };
+export { _testFunctions };

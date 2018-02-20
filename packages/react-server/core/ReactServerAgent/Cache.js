@@ -1,9 +1,9 @@
+import Q from 'q';
+import merge from "lodash/merge";
+import isEqual from "lodash/isEqual";
 
-var logger = require('../logging').getLogger(__LOGGER__)
-,	Q = require('q')
-,	merge = require("lodash/merge")
-,	isEqual = require("lodash/isEqual")
-;
+import * as logging from '../logging';
+const logger = logging.getLogger(__LOGGER__);
 
 // TODO: we should figure out a way to consolidate this with SuperAgentExtender
 var responseBodyParsers = {
@@ -322,7 +322,7 @@ class CacheEntry {
  * serialized as part of the initial page request and replayed in the
  * browser.
  */
-class RequestDataCache {
+export default class RequestDataCache {
 
 	constructor () {
 		/*
@@ -497,5 +497,3 @@ class RequestDataCache {
 	}
 
 }
-
-module.exports = RequestDataCache;

@@ -2,11 +2,18 @@
   "name": "react-server-middleware-json-response",
   "version": "0.6.1",
   "description": "JSON response middleware for React Server",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "module": "lib/index.esm.js",
+  "jsnext:main": "lib/index.esm.js",
+  "browser": {
+    "lib/index.js": "lib/index.js",
+    "lib/index.esm.js": "lib/index.esm.js"
+  },
   "scripts": {
     "prepublish": "npm run build",
-    "build": "babel index.src.js --out-file index.js",
-    "clean": "rimraf index.js",
+    "babel": "babel src/index.js --out-file index.js",
+    "build": "rollup -c",
+    "clean": "rimraf lib",
     "test": "eslint src"
   },
   "repository": {
@@ -27,11 +34,16 @@
   "homepage": "https://github.com/redfin/react-server#readme",
   "devDependencies": {
     "babel-cli": "^6.18.0",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-preset-react-server": "^0.6.0",
+    "babel-preset-env": "~1.6.1",
+    "babel-plugin-external-helpers": "~6.22.0",
+    "babel-plugin-react-server": "~0.4.10",
     "eslint": "^3.8.1",
     "eslint-plugin-react": "^6.4.1",
     "babel-eslint": "^7.0.0",
-    "rimraf": "^2.5.4"
+    "rimraf": "^2.5.4",
+    "rollup": "~0.56.2",
+    "rollup-plugin-babel": "~3.0.3",
+    "rollup-plugin-commonjs": "~8.3.0",
+    "rollup-plugin-node-resolve": "~3.0.3"
   }
 }

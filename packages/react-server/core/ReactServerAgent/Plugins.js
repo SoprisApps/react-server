@@ -1,3 +1,5 @@
+import RequestLocalStorage from '../util/RequestLocalStorage';
+
 /**
  * Wrapper class around RLS-scoped ReactServerAgent plugins to avoid
  * a circular dependency between ReactServerAgent and ReactServerAgent/Request.
@@ -9,8 +11,7 @@
  * executed is the same for _all_ requests)
  */
 
-var RLS = require('../util/RequestLocalStorage').getNamespace()
-;
+const RLS = RequestLocalStorage.getNamespace();
 
 // Simple wrapper around an array the implements the
 // API we want for adding/getting plugins
@@ -38,7 +39,7 @@ function getPlugins (pluginType) {
 }
 
 
-module.exports = {
-	forRequest:  getPlugins.bind(null, "request"),
-	forResponse: getPlugins.bind(null, "response"),
-};
+const forRequest = getPlugins.bind(null, "request");
+const forResponse = getPlugins.bind(null, "response");
+
+export { forRequest, forResponse };

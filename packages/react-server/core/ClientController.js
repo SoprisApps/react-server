@@ -1,28 +1,31 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { EventEmitter } from 'events';
+import Q from 'q';
 
-var React = require('react'),
-	ReactDOM = require('react-dom'),
-	logging = require('./logging'),
-	RequestContext = require('./context/RequestContext'),
-	RequestLocalStorage = require('./util/RequestLocalStorage'),
-	DebugUtil = require('./util/DebugUtil'),
-	Q = require('q'),
-	cssHelper = require('./util/ClientCssHelper'),
-	EventEmitter = require("events").EventEmitter,
-	ClientRequest = require("./ClientRequest"),
-	History = require('./components/History'),
-	PageUtil = require("./util/PageUtil"),
-	ReactServerAgent = require('./ReactServerAgent'),
-	{getRootElementAttributes} = require('./components/RootElement'),
-	{PAGE_LINK_NODE_ID, PAGE_CONTAINER_NODE_ID} = require('./constants');
+import * as logging from './logging';
+import RequestContext from './context/RequestContext';
+import RequestLocalStorage from './util/RequestLocalStorage';
+import DebugUtil from './util/DebugUtil';
+import * as cssHelper from './util/ClientCssHelper';
+import ClientRequest from "./ClientRequest";
+import History from './components/History';
+import PageUtil from "./util/PageUtil";
+import ReactServerAgent from './ReactServerAgent';
+import {PAGE_LINK_NODE_ID, PAGE_CONTAINER_NODE_ID} from './constants';
+import RootElement from './components/RootElement';
+import config from "./config";
 
-var _ = {
-	forEach: require('lodash/forEach'),
-	assign: require('lodash/assign'),
+import lodashForEach from 'lodash/forEach';
+import lodashAssign from 'lodash/assign';
+
+const _ = {
+	lodashForEach,
+	lodashAssign,
 };
 
-var RLS = RequestLocalStorage.getNamespace();
-
-var logger = logging.getLogger(__LOGGER__);
+const RLS = RequestLocalStorage.getNamespace();
+const logger = logging.getLogger(__LOGGER__);
 
 // for dev tools
 window.React = React;
@@ -49,7 +52,7 @@ function getHistoryPathname() {
 	return location.pathname + location.search + location.hash;
 }
 
-class ClientController extends EventEmitter {
+export default class ClientController extends EventEmitter {
 
 	constructor ({routes}) {
 		super();
@@ -589,7 +592,7 @@ class ClientController extends EventEmitter {
 			renderFunc(element, root);
 
 			_.forEach(
-				getRootElementAttributes(element),
+				RootElement.getRootElementAttributes(element),
 				(v, k) => root.setAttribute(k, v)
 			);
 
@@ -844,9 +847,9 @@ function checkNotEmpty(state, key) {
 
 function buildConfig(dehydratedConfig) {
 	// rehydrate the config object
-	var config = require("./config")();
-	config.rehydrate(dehydratedConfig);
-	return config;
+	const configInstance = config();
+	configInstance.rehydrate(dehydratedConfig);
+	return configInstance;
 }
 
 function buildContext(routes) {
@@ -872,5 +875,3 @@ function logTimingData(bucket, start, end = new Date) {
 
 	logger.time(bucket, end - start);
 }
-
-module.exports = ClientController;

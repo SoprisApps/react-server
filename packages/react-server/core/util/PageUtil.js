@@ -1,15 +1,18 @@
-var Q = require("q"),
-	React = require('react'),
-	logger = require("../logging").getLogger(__LOGGER__),
-	RLS = require("./RequestLocalStorage").getNamespace();
+import Q from "q";
+import React from 'react';
 
-var {isRootContainer, flattenForRender} = require('../components/RootContainer');
-var {ensureRootElement, scheduleRender} = require('../components/RootElement');
-var {isTheFold, markTheFold} = require('../components/TheFold');
+import RequestLocalStorage from './RequestLocalStorage';
+import * as logging from '../logging';
+import RootContainer from '../components/RootContainer';
+import RootElement from '../components/RootElement';
+import {isTheFold, markTheFold} from '../components/TheFold';
+
+const RLS = RequestLocalStorage.getNamespace();
+const logger = logging.getLogger(__LOGGER__);
 
 
 var PageConfig = (function(){
-	var logger = require("../logging").getLogger(__LOGGER__({label: 'PageConfig'}));
+	const logger = logging.getLogger(__LOGGER__({label: 'PageConfig'}));
 
   // Below here are helpers. They are hidden from outside callers.
 	var _getCurrentConfigObject = function(){
@@ -255,11 +258,11 @@ function standardizeElements(elements) {
 	// First, let's make sure that it's an array.
 	// Then, ensure that all elements are wrapped in promises.
 	return makeArray(elements)
-		.map(e => isRootContainer(e)?flattenForRender(e):e)
+		.map(e => RootContainer.isRootContainer(e)?RootContainer.flattenForRender(e):e)
 		.reduce((m, e) => m.concat(Array.isArray(e)?e:[e]), [])
 		.map(e => isTheFold(e)?markTheFold():e)
-		.map(ensureRootElement)
-		.map(scheduleRender)
+		.map(RootElement.ensureRootElement)
+		.map(RootElement.scheduleRender)
 }
 
 function standardizeDebugComments(debugComments) {
@@ -333,7 +336,7 @@ function makeArray(valueOrArray) {
 	return valueOrArray;
 }
 
-var PageUtil = {
+let PageUtil = {
 	PAGE_METHODS,
 
 	standardizeElements,
@@ -460,6 +463,5 @@ var PageUtil = {
 		return (name||'Unknown').split('.').pop();
 	},
 
-}
-
-module.exports = PageUtil
+};
+export default PageUtil;

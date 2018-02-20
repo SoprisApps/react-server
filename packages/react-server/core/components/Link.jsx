@@ -1,9 +1,9 @@
+import React from 'react';
+import PropTypes from 'prop-types';
 
-var React = require('react'),
-	PropTypes = require('prop-types'),
-	navigateTo = require("../util/navigateTo");
+import navigateTo from "../util/navigateTo";
 
-class Link extends React.Component {
+export default class Link extends React.Component {
 
 	static get displayName() {
 		return 'Link';
@@ -60,5 +60,3 @@ class Link extends React.Component {
 		}
 	}
 }
-
-module.exports = Link;

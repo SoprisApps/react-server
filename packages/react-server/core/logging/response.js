@@ -1,5 +1,8 @@
-var  SuperLogger = require('winston').Transport
-,	         RLS = require('../util/RequestLocalStorage').getNamespace();
+import winston from 'winston';
+import RequestLocalStorage from '../util/RequestLocalStorage';
+
+const SuperLogger = winston.Transport
+,	         RLS = RequestLocalStorage.getNamespace();
 
 // A subset of stats that are logged are not associated with requests
 // or occur before the request context is initialized. Simply ignore
@@ -83,4 +86,5 @@ var setResponseLoggerPage = function(page) {
 		RLS().doLog = page.getRequest().getQuery()._debug_output_logs;
 	}
 }
-module.exports = {setResponseLoggerPage, flushLogsToResponse, getTransportForGroup, TimeResponseLogger, ResponseLogger};
+
+export {setResponseLoggerPage, flushLogsToResponse, getTransportForGroup, TimeResponseLogger, ResponseLogger};

@@ -1,7 +1,9 @@
-var RequestLocalStorage = require('request-local-storage');
+import RequestLocalStorage from 'request-local-storage';
+
+import clsQ from 'cls-q';
 
 if (SERVER_SIDE) {
-	RequestLocalStorage.patch(require('cls-q'));
+	RequestLocalStorage.patch(clsQ);
 }
 
-module.exports = RequestLocalStorage;
+export default RequestLocalStorage;

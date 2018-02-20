@@ -1,24 +1,15 @@
 
-var JS_BUNDLE_SUFFIX = ".bundle.js";
-var CSS_ROLLUP_SUFFIX = ".styles.css";
+export const JS_BUNDLE_SUFFIX = ".bundle.js";
+export const CSS_ROLLUP_SUFFIX = ".styles.css";
 
-function getEntryPointNameFromRouteName (routeName) {
+export function getEntryPointNameFromRouteName (routeName) {
 	return routeName + "Page";
 }
 
-module.exports = {
+export function getJsBundleFromRouteName (routeName) {
+	return getEntryPointNameFromRouteName(routeName) + JS_BUNDLE_SUFFIX;
+}
 
-	JS_BUNDLE_SUFFIX: JS_BUNDLE_SUFFIX,
-	CSS_ROLLUP_SUFFIX: CSS_ROLLUP_SUFFIX,
-
-	getEntryPointNameFromRouteName: getEntryPointNameFromRouteName,
-
-	getJsBundleFromRouteName: function (routeName) {
-		return getEntryPointNameFromRouteName(routeName) + JS_BUNDLE_SUFFIX;
-	},
-
-	getCssRollupNameFromRouteName: function (routeName) {
-		return getEntryPointNameFromRouteName(routeName) + CSS_ROLLUP_SUFFIX;
-	},
-
+export function getCssRollupNameFromRouteName(routeName) {
+	return getEntryPointNameFromRouteName(routeName) + CSS_ROLLUP_SUFFIX;
 }

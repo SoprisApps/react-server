@@ -1,8 +1,10 @@
 
-var Navigator = require('./Navigator'),
-	RequestLocals = require('../util/RequestLocalStorage').getNamespace();
+import Navigator from './Navigator';
+import RequestLocalStorage from '../util/RequestLocalStorage';
 
-class RequestContext {
+const RequestLocals = RequestLocalStorage.getNamespace();
+
+export default class RequestContext {
 
 	constructor (routes) {
 
@@ -86,6 +88,5 @@ class RequestContextBuilder {
 
 }
 
-module.exports = RequestContext;
 module.exports.Builder = RequestContextBuilder;
 

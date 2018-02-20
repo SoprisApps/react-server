@@ -3,7 +3,7 @@
  * This class wraps a Request object from the Express Server and provides the react-server Request
  * API.
  */
-class ExpressServerRequest {
+export default class ExpressServerRequest {
 	constructor(expressServerRequest) {
 		this._wrappedRequest = expressServerRequest;
 	}
@@ -69,5 +69,3 @@ class ExpressServerRequest {
 	}
 
 }
-
-module.exports = ExpressServerRequest;

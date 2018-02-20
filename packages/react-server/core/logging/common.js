@@ -1,4 +1,4 @@
-var stats = require('./stats')
+import { getCombinedLogger } from './stats';
 
 // These are the primary log levels.
 // Your logger object has a method for each of these.
@@ -96,7 +96,7 @@ var getLoggerForConfig = makeLogger => {
 // each of our two loggers and then stitches the stats logger onto the main
 // logger.
 var makeGetLogger = makeLogger => (
-	opts => stats.getCombinedLogger(getLoggerForConfig(makeLogger), opts)
+	opts => getCombinedLogger(getLoggerForConfig(makeLogger), opts)
 );
 
 // Just a handy helper for iteration.
@@ -114,4 +114,4 @@ function stack(strip=0){
 	return (new Error().stack || '').split("\n").slice(2+strip).join("\n")
 }
 
-module.exports = { config, loggers, stack, makeGetLogger, forEachLogger };
+export { config, loggers, stack, makeGetLogger, forEachLogger };

@@ -1,7 +1,7 @@
+import React from 'react';
+import PropTypes from 'prop-types';
 
-var ReactServerAgent = require("../ReactServerAgent"),
-	React = require('react'),
-	PropTypes = require('prop-types');
+import ReactServerAgent from "../ReactServerAgent";
 
 /**
  * FragmentDataCache writes out a serialized form of the ReactServerAgent request
@@ -37,7 +37,7 @@ var ReactServerAgent = require("../ReactServerAgent"),
  * 	* entry.res and entry.err.response won't have any `body` entry if
  *	  the response from the server was HTML instead of JSON.
  */
-class FragmentDataCache extends React.Component {
+export default class FragmentDataCache extends React.Component {
 
 	static get displayName() {
 		return 'FragmentDataCache';
@@ -74,5 +74,3 @@ class FragmentDataCache extends React.Component {
 		);
 	}
 };
-
-module.exports = FragmentDataCache;

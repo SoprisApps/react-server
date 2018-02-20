@@ -1,15 +1,20 @@
+import { EventEmitter } from 'events';
+import Q from 'q';
+import Router from 'routr';
 
-var EventEmitter = require('events').EventEmitter,
-	logger = require('../logging').getLogger(__LOGGER__),
-	Router = require('routr'),
-	Q = require('q'),
-	History = require("../components/History"),
-	ReactServerAgent = require("../ReactServerAgent"),
-	PageUtil = require("../util/PageUtil"),
-	DebugUtil = require("../util/DebugUtil"),
-	{setResponseLoggerPage} = SERVER_SIDE ? require('../logging/response') : { setResponseLoggerPage: () => {} };
+import * as logging from '../logging';
+import * as loggingResponse from '../logging/response';
+import History from "../components/History";
+import ReactServerAgent from "../ReactServerAgent";
+import PageUtil from "../util/PageUtil";
+import DebugUtil from "../util/DebugUtil";
 
-class Navigator extends EventEmitter {
+
+const setResponseLoggerPage = SERVER_SIDE ? loggingResponse.setResponseLoggerPage : { setResponseLoggerPage: () => {} };
+
+const logger = logging.getLogger(__LOGGER__);
+
+export default class Navigator extends EventEmitter {
 
 	constructor (context, routes) {
 		super();
@@ -289,5 +294,3 @@ class Navigator extends EventEmitter {
 		this.startRoute();
 	}
 }
-
-module.exports = Navigator;

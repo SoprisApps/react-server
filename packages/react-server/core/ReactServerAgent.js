@@ -1,14 +1,14 @@
-var RLS = require('./util/RequestLocalStorage').getNamespace()
-,	Cache = require("./ReactServerAgent/Cache")
-,	Request = require("./ReactServerAgent/Request")
-,	Plugins = require("./ReactServerAgent/Plugins")
-;
+import RequestLocalStorage from './util/RequestLocalStorage';
+import Cache from "./ReactServerAgent/Cache";
+import Request from "./ReactServerAgent/Request";
+import * as Plugins from "./ReactServerAgent/Plugins";
 
+const RLS = RequestLocalStorage.getNamespace();
 
 const DATA_BUNDLE_PARAMETER = '_react_server_data_bundle';
 const DATA_BUNDLE_OPTS      = {[DATA_BUNDLE_PARAMETER]: 1};
 
-var API = {
+const API = {
 
 	DATA_BUNDLE_PARAMETER,
 
@@ -107,8 +107,6 @@ var API = {
 		API.cache().rehydrate(JSON.parse(data))
 	},
 
-}
+};
 
-
-
-module.exports = API;
+export default API;

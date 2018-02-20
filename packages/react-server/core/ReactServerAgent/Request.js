@@ -1,15 +1,17 @@
-var superagent = require('superagent')
-,	logger = require('../logging').getLogger(__LOGGER__)
-,	Q = require('q')
-,	Plugins = require("./Plugins")
-,	merge = require("lodash/merge")
-;
+import Q from 'q';
+import superagent from 'superagent';
+import merge from "lodash/merge";
+
+import * as Plugins from "./Plugins";
+import * as logging from '../logging';
+const logger = logging.getLogger(__LOGGER__);
+
 
 /**
  * Implements a subset of superagent's API. Packages up arguments
  * to pass to superagent under the hood.
  */
-function Request(method, urlPath, cache) {
+export default function Request(method, urlPath, cache) {
 	this._method = method;
 	this._urlPath = urlPath;
 	this._cache = cache;
@@ -384,6 +386,3 @@ Request.prototype.withHeaderInResponse = function () {
 	this._cacheWhitelist.push('header');
 	return this;
 }
-
-
-module.exports = Request;

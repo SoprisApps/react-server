@@ -1,14 +1,17 @@
-import {Component} from "react";
+import React from 'react';
 
-export default class TheFold extends Component {
+export default class TheFold extends React.Component {
+	static get defaultProps() {
+		return {
+			_isTheFold: true,
+		}
+	}
+
 	render() {
 		throw new Error("Something went wrong.  Trying to render the fold...");
 	}
 }
 
-TheFold.defaultProps = {
-	_isTheFold: true,
-}
 
 export function isTheFold(element) {
 	return element && element.props && element.props._isTheFold;

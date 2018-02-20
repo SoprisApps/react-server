@@ -210,6 +210,7 @@ function packageCodeForBrowser(entrypoints, outputDir, outputUrl, hot, minify, l
 			],
 		},
 		resolve: {
+			mainFields: ['module', 'jsnext:main', 'browser', 'main'],
 			alias: {
 				// These need to be singletons.
 				"react"        : callerDependency("react"),

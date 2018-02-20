@@ -1,4 +1,6 @@
-var common = require("./common.js");
+import * as commonImports from "./common.js";
+import renderMiddleware from "./renderMiddleware";
 
-common.middleware = require("./renderMiddleware")
-module.exports = common;
+const serverExports = commonImports;
+serverExports.middleware = renderMiddleware;
+export default serverExports;

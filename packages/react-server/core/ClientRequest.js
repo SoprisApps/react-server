@@ -1,10 +1,10 @@
-var cookie = require("cookie"),
-	decode = require("querystring/decode");
+import cookie from "cookie";
+import decode from "querystring/decode";
 
 /**
  * This class implements the react-server request API for client-side transitions.
  */
-class ClientRequest {
+export default class ClientRequest {
 
 	constructor(url, {
 		bundleData,
@@ -114,5 +114,3 @@ class ClientRequest {
 	}
 
 }
-
-module.exports = ClientRequest;

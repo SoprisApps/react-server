@@ -1,14 +1,22 @@
-var winston = require('winston')
-,   common  = require('./common')
-,   _ = {
-	mapValues     : require("lodash/mapValues"),
-	pickBy        : require("lodash/pickBy"),
-	isPlainObject : require("lodash/isPlainObject"),
-	isEmpty       : require("lodash/isEmpty"),
-	trimStart     : require("lodash/trimStart"),
-	truncate      : require("lodash/truncate"),
-}
-,   responseTransport = require('./response');
+import winston from 'winston';
+import lodashMapValues from 'lodash/mapValues';
+import lodashPickBy from 'lodash/pickBy';
+import lodashIsPlainObject from 'lodash/isPlainObject';
+import lodashIsEmpty from 'lodash/isEmpty';
+import lodashTrimStart from 'lodash/trimStart';
+import lodashTruncate from 'lodash/truncate';
+
+import * as common from './common';
+import { getTransportForGroup } from './response';
+
+const _ = {
+	mapValues     : lodashMapValues,
+	pickBy        : lodashPickBy,
+	isPlainObject : lodashIsPlainObject,
+	isEmpty       : lodashIsEmpty,
+	trimStart     : lodashTrimStart,
+	truncate      : lodashTruncate,
+};
 
 var makeLogger = function(group, opts){
 	var config = common.config[group];
@@ -23,7 +31,7 @@ var makeLogger = function(group, opts){
 	var logger = new (winston.Logger)({
 		transports: [
 			fileTransport,
-			responseTransport.getTransportForGroup(group, opts),
+			getTransportForGroup(group, opts),
 		],
 	});
 
@@ -163,7 +171,7 @@ setColorize(process.stdout.isTTY);
 // Just the default.
 setTimestamp(true);
 
-module.exports = {
+export {
 	addTransport,
 	addRewriter,
 	getLogger,

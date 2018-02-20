@@ -8,7 +8,7 @@
  *
  */
 
-var common = require('./common')
+import * as common from './common';
 
 var _console = ['log','error','warn','debug','info'].reduce((m,v) => {
 	// IE9 doesn't even _define_ console unless the dev tools are open.
@@ -143,4 +143,4 @@ var addTransport = function(group, transport){
 	});
 }
 
-module.exports = { getLogger, setLevel, addTransport };
+export { getLogger, setLevel, addTransport };

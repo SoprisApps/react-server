@@ -22,7 +22,7 @@ var events = {
  * @param {Object} [options]  The options object
  * @param {Window} [options.win=window]  The window object
  */
-function History(options) {
+export default function History(options) {
 	this.win = (options && options.win) || window;
 	this._hasPushState = !!(this.win && this.win.history && this.win.history.pushState);
 }
@@ -113,5 +113,3 @@ History.prototype = {
 };
 
 History.events = events;
-
-module.exports = History;
