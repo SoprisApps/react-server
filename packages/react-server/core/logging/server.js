@@ -1,10 +1,13 @@
-import winston from 'winston';
 import lodashMapValues from 'lodash/mapValues';
 import lodashPickBy from 'lodash/pickBy';
 import lodashIsPlainObject from 'lodash/isPlainObject';
 import lodashIsEmpty from 'lodash/isEmpty';
 import lodashTrimStart from 'lodash/trimStart';
 import lodashTruncate from 'lodash/truncate';
+
+// This needs to be ES5-style require() for now
+// https://github.com/winstonjs/winston/issues/801
+let winston = require('winston');
 
 import * as common from './common';
 import { getTransportForGroup } from './response';
@@ -172,10 +175,10 @@ setColorize(process.stdout.isTTY);
 setTimestamp(true);
 
 export {
-	addTransport,
-	addRewriter,
 	getLogger,
-	setColorize,
+	addTransport,
 	setLevel,
+	addRewriter,
+	setColorize,
 	setTimestamp,
 };

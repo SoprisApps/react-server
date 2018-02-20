@@ -1,4 +1,12 @@
 {
-	"presets": ["react-server"],
+	"presets": [
+		["env", {
+			"targets": {
+				"node": "current"
+			}
+		}],
+		"react",
+		"stage-0"
+	],
 	"plugins": ["add-module-exports"]
 }

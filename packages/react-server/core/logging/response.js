@@ -1,5 +1,8 @@
-import winston from 'winston';
 import RequestLocalStorage from '../util/RequestLocalStorage';
+
+// This needs to be ES5-style require() for now
+// https://github.com/winstonjs/winston/issues/801
+let winston = require('winston');
 
 const SuperLogger = winston.Transport
 ,	         RLS = RequestLocalStorage.getNamespace();
