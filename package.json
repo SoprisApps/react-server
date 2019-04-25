@@ -1,7 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "audit": "npm audit && lerna exec --stream npm audit",
+    "audit": "npm run audit:prepare && npm run audit:run && npm run audit:clean",
+    "audit:prepare": "./scripts/generate-package-lock-files.sh",
+    "audit:prepare2": "lerna exec -- npm install --ignore-scripts --package-lock-only --dry-run",
+    "audit:run": "npm audit --parseable || lerna exec --no-bail --stream -- npm audit --parseable",
+    "audit:clean": "rimraf packages/*/package-lock.json",
     "bootstrap": "npm i",
     "bootstrap-no-i": "lerna bootstrap",
     "build": "lerna run build",
