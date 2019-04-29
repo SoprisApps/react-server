@@ -2,17 +2,18 @@
   "name": "flab",
   "version": "0.6.3",
   "description": "Future Loading and Blocking JS",
-  "main": "index.js",
+  "main": "lib/bundle.cjs.js",
+  "module": "lib/bundle.esm.js",
   "files": [
     "index.js",
     "string"
   ],
   "scripts": {
     "prepublish": "npm run build",
-    "build": "mkdir -p string && npm run build-src && npm run build-min",
+    "build": "mkdir -p string && npm run build-src && npm run build-min && rollup -c rollup.config.js",
     "build-src": "node stringify.js < LAB.src.js > string/src.js",
     "build-min": "node minify.js < LAB.src.js | node stringify.js > string/min.js",
-    "clean": "rimraf string",
+    "clean": "rimraf string lib",
     "lint": "eslint .",
     "test": "echo \"No tests yet...\""
   },

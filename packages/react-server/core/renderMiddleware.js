@@ -1,3 +1,4 @@
+import flab from 'flab';
 
 var logger = require('./logging').getLogger(__LOGGER__),
 	React = require('react'),
@@ -7,7 +8,6 @@ var logger = require('./logging').getLogger(__LOGGER__),
 	RequestLocalStorage = require('./util/RequestLocalStorage'),
 	DebugUtil = require('./util/DebugUtil').default,
 	RLS = RequestLocalStorage.getNamespace(),
-	flab = require('flab'),
 	Q = require('q'),
 	config = require('./config'),
 	ExpressServerRequest = require("./ExpressServerRequest"),
